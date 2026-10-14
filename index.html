@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Tools Lab — ten models, one bench</title>
+<meta name="description" content="Ten real AI builds running on CPU — speech, vision, agents, forecasting. Nothing mocked, nothing faked.">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-2:#FFFFFF;
+    --ink:#1C1B18;
+    --ink-2:#5C5A54;
+    --ink-3:#8A8780;
+    --line:#E7E4DC;
+    --accent:#1E7F4F;
+    --accent-ink:#14603B;
+    --accent-soft:#E9F4ED;
+    --warn:#B45309;
+    --warn-soft:#FBF3E4;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  /* header */
+  header.top{padding:28px 0 8px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .mark{width:38px;height:38px;border-radius:10px;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .mark svg{width:20px;height:20px}
+  .brand b{font-size:17px;letter-spacing:-0.01em;display:block;line-height:1.2}
+  .brand span{font-size:12.5px;color:var(--ink-3);letter-spacing:.02em}
+  .live{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--ink-2)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;position:relative}
+  .dot::after{content:"";position:absolute;inset:-4px;border-radius:50%;
+    border:2px solid var(--accent);opacity:.35;animation:ping 2.4s ease-out infinite}
+  @keyframes ping{0%{transform:scale(.5);opacity:.5}80%,100%{transform:scale(1.15);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.dot::after{animation:none}}
+
+  /* hero */
+  .hero{padding:56px 0 40px;max-width:720px}
+  .hero h1{font-size:clamp(34px,5.2vw,54px);line-height:1.08;letter-spacing:-0.03em;font-weight:750}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p{margin-top:16px;color:var(--ink-2);font-size:17px;max-width:60ch}
+  .hero .hint{margin-top:14px;font-size:13.5px;color:var(--ink-3)}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:24px}
+  @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:600px){.grid{grid-template-columns:1fr}}
+  .card{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;display:flex;flex-direction:column;gap:10px;min-height:196px;
+    transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{border-color:var(--accent);transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(28,27,24,.07)}
+  .card:focus-within{border-color:var(--accent)}
+  .card-top{display:flex;align-items:center;gap:10px}
+  .ico{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .ico svg{width:18px;height:18px}
+  .num{font-size:12px;color:var(--ink-3);letter-spacing:.06em}
+  .card h2{font-size:16.5px;letter-spacing:-0.01em;font-weight:650}
+  .card p{font-size:13.8px;color:var(--ink-2);flex:1}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+  .tag{font-size:11.5px;letter-spacing:.05em;color:var(--accent-ink);
+    background:var(--accent-soft);border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .tag.dim{color:var(--ink-2);background:#F1EFE9}
+  .open{font-size:14px;font-weight:650;color:var(--accent-ink);text-decoration:none;
+    display:inline-flex;align-items:center;gap:6px;min-height:44px}
+  .open svg{width:15px;height:15px;transition:transform .18s ease}
+  .open:hover svg{transform:translate(2px,-2px)}
+  .open:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+  /* lab banner card spans full width */
+  .card.lab{grid-column:1/-1;flex-direction:row;align-items:center;min-height:0;
+    background:var(--ink);color:#F4F2EC;border-color:var(--ink)}
+  .card.lab:hover{border-color:var(--ink);box-shadow:0 8px 24px rgba(28,27,24,.18)}
+  .card.lab h2{color:#fff}
+  .card.lab p{color:#C9C6BD}
+  .card.lab .tag{background:rgba(255,255,255,.12);color:#fff}
+  .card.lab .open{color:#fff}
+  .card.lab .ico{background:rgba(255,255,255,.12);color:#fff}
+  @media (max-width:600px){.card.lab{flex-direction:column;align-items:flex-start}}
+
+  footer{border-top:1px solid var(--line);margin-top:32px;padding:24px 0 48px;
+    color:var(--ink-3);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+  footer a{color:var(--accent-ink)}
+  .warn{background:var(--warn-soft);border:1px solid #EBD9B4;border-radius:10px;
+    padding:12px 16px;font-size:13.5px;color:#7A4A12;margin-bottom:24px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      </span>
+      <div><b>AI Tools Lab</b><span class="mono">10 builds · live tests</span></div>
+      <div class="live"><span class="dot" aria-hidden="true"></span><span id="liveLabel">all systems live</span></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>Ten models. One bench.<br><em>Run them all.</em></h1>
+    <p>Every AI build from the ai-tools repo, wired to actually execute — speech, vision, agents, forecasting. Nothing mocked, nothing faked. If a tool fails, it says so.</p>
+    <p class="hint mono" id="domainHint">served from your Cloudflare tunnel</p>
+  </section>
+
+  <div class="warn" id="cfgWarn" role="note"></div>
+
+  <main class="grid" id="grid" aria-label="AI tools"></main>
+
+  <footer>
+    <span class="mono">runs on CPU · no cloud inference · no tracking</span>
+    <span>Source: <a href="https://github.com/Shivbu21/ai-tools">github.com/Shivbu21/ai-tools</a></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* Live links come from links.json, regenerated by the tunnel watchdog
+   * on this VM every time a tunnel rotates and pushed to GitHub, so
+   * Vercel redeploys with fresh URLs automatically. */
+  var tools = [
+    {key:"stt", num:"01", name:"Hinglish STT",
+     desc:"Code-switched speech \u2192 text, measurably better than stock whisper.",
+     tag:"works on CPU",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>'},
+    {key:"lipsync", num:"02", name:"Lip-sync avatar",
+     desc:"Still portrait + audio \u2192 talking-head video (Wav2Lip, real).",
+     tag:"works on CPU \u00B7 slow",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 10l7-3v10l-7-3"/></svg>'},
+    {key:"receptionist", num:"03", name:"Agentic receptionist",
+     desc:"Local 1.5B model books slots via real tool calls + speaks.",
+     tag:"works on CPU",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8z"/></svg>'},
+    {key:"mandi", num:"04", name:"Mandi forecast",
+     desc:"48k real Agmarknet rows \u2192 7-day baseline forecast.",
+     tag:"experimental", dim:true,
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>'},
+    {key:"matcher", num:"05", name:"Pro matcher",
+     desc:"Explainable, deterministic pro ranking with score breakdowns.",
+     tag:"deterministic",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M17.5 14.5a6.5 6.5 0 0 1 4 5.5"/></svg>'},
+    {key:"vision", num:"06", name:"Vision tagger",
+     desc:"On-device MobileNet-ONNX photo tagging, no cloud.",
+     tag:"on-device",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'},
+    {key:"tinygpt", num:"07", name:"Tiny GPT",
+     desc:"~800k-param transformer trained from scratch on this CPU.",
+     tag:"trained here",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>'},
+    {key:"resume", num:"08", name:"Resume ranker",
+     desc:"Ranks real PDFs against a JD, explains every score.",
+     tag:"full app",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h7"/></svg>'},
+    {key:"catalog", num:"09", name:"Catalog Q&A",
+     desc:"RAG over a kirana catalog with cited answers.",
+     tag:"full app",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'},
+    {key:"upi", num:"10", name:"UPI verifier",
+     desc:"ELA forgery detection on payment screenshots.",
+     tag:"full app",
+     icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>'}
+  ];
+
+  var grid = document.getElementById("grid");
+
+  function toolUrl(key, links) {
+    return (links && links[key]) || "#";
+  }
+
+  function render(links) {
+    var LINKS = links || {};
+    var unconfigured = !links || !links.lab;
+
+    if (unconfigured) {
+      var w = document.getElementById("cfgWarn");
+      w.style.display = "block";
+      w.textContent = "Links are refreshing — the backends are reconnecting. Try again in a minute.";
+    } else if (links.updated) {
+      var d = new Date(links.updated);
+      document.getElementById("domainHint").textContent =
+        "links refreshed " + d.toLocaleString();
+    }
+
+  tools.forEach(function(t){
+    var url = toolUrl(t.key, LINKS);
+    var card = document.createElement("article");
+    card.className = "card";
+    card.innerHTML =
+      '<div class="card-top"><span class="ico" aria-hidden="true">' + t.icon + '</span>' +
+      '<span class="num mono">' + t.num + '</span></div>' +
+      '<h2></h2><p></p>' +
+      '<div class="card-foot"><span class="tag mono' + (t.dim ? ' dim' : '') + '"></span>' +
+      '<a class="open" target="_blank" rel="noopener">Open ' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a></div>';
+    card.querySelector("h2").textContent = t.name;
+    card.querySelector("p").textContent = t.desc;
+    card.querySelector(".tag").textContent = t.tag;
+    var a = card.querySelector("a.open");
+    a.href = url;
+    if (unconfigured) a.removeAttribute("target");
+    a.setAttribute("aria-label", "Open " + t.name + (unconfigured ? " (not configured)" : " in a new tab"));
+    grid.appendChild(card);
+  });
+
+  /* lab portal banner — the single console with all ten wired in */
+  var lab = document.createElement("article");
+  lab.className = "card lab";
+  lab.innerHTML =
+    '<span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>' +
+    '<div style="flex:1"><h2>Lab console</h2>' +
+    '<p>All ten tools on one bench — transcribe, render, book, forecast, match, tag, generate without leaving the page.</p></div>' +
+    '<div class="card-foot"><span class="tag mono">overview</span>' +
+    '<a class="open" target="_blank" rel="noopener">Open console ' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a></div>';
+  var la = lab.querySelector("a.open");
+  la.href = toolUrl("lab", LINKS);
+  la.setAttribute("aria-label", "Open the lab console in a new tab");
+  grid.appendChild(lab);
+
+  /* soft liveness probe: no-cors fetch resolves iff *something* answers */
+  if (!unconfigured) {
+    var keys = tools.map(function(t){ return t.key; }).concat(["lab"]);
+    var down = 0, checked = 0;
+    keys.forEach(function(k){
+      var u = toolUrl(k, LINKS);
+      if (u === "#") { checked++; return; }
+      fetch(u, {mode:"no-cors", cache:"no-store"})
+        .catch(function(){ down++; })
+        .finally(function(){
+          checked++;
+          if (checked === keys.length && down > 0) {
+            document.getElementById("liveLabel").textContent =
+              down + " of " + keys.length + " unreachable — retrying shortly";
+          }
+        });
+    });
+  }
+  }
+
+  fetch("links.json", {cache:"no-store"}).then(function(r){
+    if (!r.ok) throw new Error("no links");
+    return r.json();
+  }).then(function(links){
+    render(links);
+  }).catch(function(){
+    render(null);
+  });
+})();
+</script>
+</body>
+</html>
